@@ -17,9 +17,10 @@ provideApolloClient(apolloClient);
 //   render: () => h(App),
 // });
 
+// TODO: pagination
 const variables = ref({
   skip: 0,
-  take: 50,
+  take: 30,
 });
 
 export default {
@@ -30,11 +31,14 @@ export default {
           transactions(pagination: { skip: $skip, take: $take }) {
             id
             accountId
-            categoryId
             reference
             amount
             currency
             date
+            category {
+              name
+              color
+            }
           }
         }
       `,
@@ -57,26 +61,27 @@ export default {
     <div class="border">
       <div class="p-12">
         <div class="font-semibold text-lg">Transactions</div>
+        <!-- TODO: filters -->
         <div class="flex flex-wrap gap-4 mt-6">
           <div>
             <div class="opacity-50 w-fit">Search</div>
-            <div class="w-72 h-8 border"></div>
+            <input class="w-72 h-8 border"/>
           </div>
           <div>
             <div class="opacity-50">Bank</div>
-            <div class="w-40 h-8 border"></div>
+            <input class="w-40 h-8 border"/>
           </div>
           <div>
             <div class="opacity-50">Account</div>
-            <div class="w-40 h-8 border"></div>
+            <input class="w-40 h-8 border"/>
           </div>
           <div>
             <div class="opacity-50">Starting month</div>
-            <div class="w-40 h-8 border"></div>
+            <input class="w-40 h-8 border"/>
           </div>
           <div>
             <div class="opacity-50">Ending month</div>
-            <div class="w-40 h-8 border"></div>
+            <input class="w-40 h-8 border"/>
           </div>
         </div>
 
@@ -84,6 +89,7 @@ export default {
 
         <div v-else-if="error">Error: {{ error.message }}</div>
 
+         <!-- TODO: Each transaction opens a details page -->
         <table v-if="transactions" class="w-full mt-8">
           <thead>
             <tr>
@@ -97,12 +103,16 @@ export default {
             <tr
               v-for="value in transactions"
               :key="value.id"
-              class="border-t pb-12"
+              class="border-t pb-12 h-12"
             >
               <td>{{ value.reference ?? 'No reference provided' }}</td>
-              <td>{{ value.categoryId }}</td>
-              <td>{{ value.date }}</td>
-              <td class="text-end">{{ value.amount }}</td>
+              <td  >
+                <div class="w-fit px-2 rounded-sm" :style="{ backgroundColor: '#' + value.category.color }">
+                  {{ value.category.name  }}
+                </div>
+              </td>
+              <td>{{ value.date.slice(0, 10) }}</td>
+              <td class="text-end">{{ value.currency }} {{ value.amount }}</td>
             </tr>
           </tbody>
         </table>

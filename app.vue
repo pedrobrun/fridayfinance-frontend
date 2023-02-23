@@ -1,30 +1,19 @@
 <script>
-import { createApp, provide, h } from 'vue';
-import { DefaultApolloClient } from '@vue/apollo-composable';
+import { ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import gql from 'graphql-tag';
 import { provideApolloClient } from '@vue/apollo-composable';
 import { apolloClient } from './gql/apolloClient';
-import { ref } from 'vue';
 
 provideApolloClient(apolloClient);
 
-// const app = createApp({
-//   setup() {
-//     provide(DefaultApolloClient, apolloClient);
-//   },
-
-//   render: () => h(App),
-// });
-
-// TODO: pagination
-const variables = ref({
-  skip: 0,
-  take: 30,
-});
-
 export default {
   setup() {
+    const variables = ref({
+      skip: 0,
+      take: 30,
+    });
+
     const { result, loading, error } = useQuery(
       gql`
         query getTransactions($skip: Int!, $take: Int!) {
@@ -46,11 +35,29 @@ export default {
     );
 
     const transactions = computed(() => result.value?.transactions ?? []);
+ 
+    const searchText = ref(''); 
+
+    const filteredTransactions = computed(() => {
+      if (searchText.value.trim().length === 0) {
+        return transactions.value;
+      } else {
+        return transactions.value.filter((tr) =>
+          tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
+        );
+      }
+    });
+
+    const searchRef = () => {
+      // Do nothing, the computed property will automatically update
+    };
 
     return {
-      transactions,
+      filteredTransactions,
       loading,
       error,
+      searchText,
+      searchRef,
     };
   },
 };
@@ -64,24 +71,25 @@ export default {
         <!-- TODO: filters -->
         <div class="flex flex-wrap gap-4 mt-6">
           <div>
-            <div class="opacity-50 w-fit">Search</div>
-            <input class="w-72 h-8 border"/>
+            <div class="opacity-50 w-fit">Reference</div>
+            <input v-model="searchText" class="w-72 h-8 border" @input="searchRef" />
+            <!-- <input v-model="searchText" class="w-72 h-8 border" @input="(event)=> searchRef(event.target.value)" /> -->
           </div>
           <div>
             <div class="opacity-50">Bank</div>
-            <input class="w-40 h-8 border"/>
+            <input class="w-40 h-8 border" />
           </div>
           <div>
             <div class="opacity-50">Account</div>
-            <input class="w-40 h-8 border"/>
+            <input class="w-40 h-8 border" />
           </div>
           <div>
             <div class="opacity-50">Starting month</div>
-            <input class="w-40 h-8 border"/>
+            <input class="w-40 h-8 border" />
           </div>
           <div>
             <div class="opacity-50">Ending month</div>
-            <input class="w-40 h-8 border"/>
+            <input class="w-40 h-8 border" />
           </div>
         </div>
 
@@ -89,8 +97,8 @@ export default {
 
         <div v-else-if="error">Error: {{ error.message }}</div>
 
-         <!-- TODO: Each transaction opens a details page -->
-        <table v-if="transactions" class="w-full mt-8">
+        <!-- TODO: Each transaction opens a details page -->
+        <table v-if="filteredTransactions" class="w-full mt-8">
           <thead>
             <tr>
               <th class="text-start">Reference</th>
@@ -101,18 +109,26 @@ export default {
           </thead>
           <tbody>
             <tr
-              v-for="value in transactions"
+              v-for="value in filteredTransactions"
               :key="value.id"
               class="border-t pb-12 h-12"
             >
-              <td>{{ value.reference ?? 'No reference provided' }}</td>
-              <td  >
-                <div class="w-fit px-2 rounded-sm" :style="{ backgroundColor: '#' + value.category.color }">
-                  {{ value.category.name  }}
+              <td :style="{ opacity: value.reference ? '' : '0.2' }">
+                {{ value.reference ?? 'No reference provided' }}
+              </td>
+              <td>
+                <div
+                  class="w-fit px-2 rounded-sm"
+                  :style="{ backgroundColor: '#' + value.category?.color }"
+                >
+                  {{ value.category.name }}
                 </div>
               </td>
-              <td>{{ value.date.slice(0, 10) }}</td>
-              <td class="text-end">{{ value.currency }} {{ value.amount }}</td>
+              <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
+              <td class="text-end">
+                <span class="opacity-50">{{ value.currency }}</span>
+                {{ value.amount }}
+              </td>
             </tr>
           </tbody>
         </table>

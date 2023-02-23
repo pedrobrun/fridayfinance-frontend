@@ -34,18 +34,51 @@ export default {
       variables
     );
 
+    const {
+      result: accResult,
+      loading: accLoading,
+      error: accError,
+    } = useQuery(
+      gql`
+        query getAccounts {
+          accounts {
+            id
+            name
+          }
+        }
+      `
+    );
+
     const transactions = computed(() => result.value?.transactions ?? []);
- 
-    const searchText = ref(''); 
+    const accounts = computed(() => accResult.value?.accounts ?? []);
+
+    const searchText = ref('');
+
+    const searchAcc = ref({ name: 'All' });
 
     const filteredTransactions = computed(() => {
+      if (searchAcc.value.name !== 'All') {
+        const accId = searchAcc.value.id;
+        const filtered = transactions.value.filter(
+          (tr) => tr.accountId === accId
+        );
+
+        if (searchText.value.trim().length >= 0) {
+          return filtered.filter((tr) =>
+            tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
+          );
+        }
+
+        return (transactions.value = filtered);
+      }
+
       if (searchText.value.trim().length === 0) {
         return transactions.value;
-      } else {
-        return transactions.value.filter((tr) =>
-          tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
-        );
       }
+
+      return transactions.value.filter((tr) =>
+        tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
+      );
     });
 
     const searchRef = () => {
@@ -54,9 +87,11 @@ export default {
 
     return {
       filteredTransactions,
+      accounts,
       loading,
       error,
       searchText,
+      searchAcc,
       searchRef,
     };
   },
@@ -72,16 +107,21 @@ export default {
         <div class="flex flex-wrap gap-4 mt-6">
           <div>
             <div class="opacity-50 w-fit">Reference</div>
-            <input v-model="searchText" class="w-72 h-8 border" @input="searchRef" />
-            <!-- <input v-model="searchText" class="w-72 h-8 border" @input="(event)=> searchRef(event.target.value)" /> -->
-          </div>
-          <div>
-            <div class="opacity-50">Bank</div>
-            <input class="w-40 h-8 border" />
+            <input
+              v-model="searchText"
+              class="w-72 h-8 border"
+              @input="searchRef"
+            />
           </div>
           <div>
             <div class="opacity-50">Account</div>
-            <input class="w-40 h-8 border" />
+
+            <select v-model="searchAcc" class="w-40 h-8 border">
+              <option :value="{ name: 'All' }">All</option>
+              <option :value="acc" v-for="acc in accounts">
+                {{ acc.name }}
+              </option>
+            </select>
           </div>
           <div>
             <div class="opacity-50">Starting month</div>
@@ -97,8 +137,12 @@ export default {
 
         <div v-else-if="error">Error: {{ error.message }}</div>
 
+        <div v-if="filteredTransactions.length === 0">
+          <div class="mt-12 text-xl">No transactions found...</div>
+        </div>
+
         <!-- TODO: Each transaction opens a details page -->
-        <table v-if="filteredTransactions" class="w-full mt-8">
+        <table v-else="filteredTransactions" class="w-full mt-8">
           <thead>
             <tr>
               <th class="text-start">Reference</th>

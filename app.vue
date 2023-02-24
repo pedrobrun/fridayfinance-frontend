@@ -9,12 +9,10 @@ provideApolloClient(apolloClient);
 
 export default {
   setup() {
-    const variables = ref({
-      skip: 0,
-      take: 30,
-    });
+    const skip = ref(0);
+    const take = ref(30);
 
-    const { result, loading, error } = useQuery(
+    const { result, loading, error, fetchMore } = useQuery(
       gql`
         query getTransactions($skip: Int!, $take: Int!) {
           transactions(pagination: { skip: $skip, take: $take }) {
@@ -31,13 +29,32 @@ export default {
           }
         }
       `,
-      variables
+      { skip, take },
+      { fetchPolicy: 'cache-and-network' }
     );
+
+    function loadMore () {
+      fetchMore({
+        variables: {
+          skip: result.value.transactions.length,
+          take: 30,
+        },
+        updateQuery: (previousResult, { fetchMoreResult }) => {
+          if (!fetchMoreResult) return previousResult
+
+          return {
+            ...previousResult,
+            transactions: [
+              ...previousResult.transactions,
+              ...fetchMoreResult.transactions,
+            ],
+          }
+        },
+      })
+    }
 
     const {
       result: accResult,
-      loading: accLoading,
-      error: accError,
     } = useQuery(
       gql`
         query getAccounts {
@@ -72,6 +89,16 @@ export default {
         return (transactions.value = filtered);
       }
 
+      if (searchAcc.value.name === 'All') {
+        if (searchText.value.trim().length === 0) {
+          return transactions.value;
+        }
+
+        return transactions.value.filter((tr) =>
+        tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
+      );
+      }
+
       if (searchText.value.trim().length === 0) {
         return transactions.value;
       }
@@ -93,6 +120,7 @@ export default {
       searchText,
       searchAcc,
       searchRef,
+      loadMore,
     };
   },
 };
@@ -165,7 +193,7 @@ export default {
                   class="w-fit px-2 rounded-sm"
                   :style="{ backgroundColor: '#' + value.category?.color }"
                 >
-                  {{ value.category.name }}
+                  {{ value.category?.name }}
                 </div>
               </td>
               <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
@@ -175,6 +203,11 @@ export default {
               </td>
             </tr>
           </tbody>
+
+          <div class="mt-20">
+
+            <button class="text-white rounded-sm bg-blue-400 text-2xl border px-10 py-2" @click="loadMore()">Load More</button>
+          </div>
         </table>
       </div>
     </div>

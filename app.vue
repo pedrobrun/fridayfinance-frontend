@@ -33,14 +33,14 @@ export default {
       { fetchPolicy: 'cache-and-network' }
     );
 
-    function loadMore () {
+    function loadMore() {
       fetchMore({
         variables: {
           skip: result.value.transactions.length,
           take: 30,
         },
         updateQuery: (previousResult, { fetchMoreResult }) => {
-          if (!fetchMoreResult) return previousResult
+          if (!fetchMoreResult) return previousResult;
 
           return {
             ...previousResult,
@@ -48,14 +48,12 @@ export default {
               ...previousResult.transactions,
               ...fetchMoreResult.transactions,
             ],
-          }
+          };
         },
-      })
+      });
     }
 
-    const {
-      result: accResult,
-    } = useQuery(
+    const { result: accResult } = useQuery(
       gql`
         query getAccounts {
           accounts {
@@ -80,7 +78,7 @@ export default {
           (tr) => tr.accountId === accId
         );
 
-        if (searchText.value.trim().length >= 0) {
+        if (searchText.value.trim().length >= 1) {
           return filtered.filter((tr) =>
             tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
           );
@@ -95,13 +93,13 @@ export default {
         }
 
         return transactions.value.filter((tr) =>
-        tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
-      );
+          tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
+        );
       }
 
-      if (searchText.value.trim().length === 0) {
-        return transactions.value;
-      }
+      // if (searchText.value.trim().length === 0) {
+      //   return transactions.value;
+      // }
 
       return transactions.value.filter((tr) =>
         tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
@@ -151,15 +149,24 @@ export default {
                 </option>
               </select>
             </div>
-            
             <div>
               <div class="opacity-50">Starting date</div>
-              <input class="w-40 px-2 h-8 border" type="date" name="dateofbirth" id="dateofbirth">
+              <input
+                class="w-40 px-2 h-8 border"
+                type="date"
+                name="dateofbirth"
+                id="dateofbirth"
+              />
             </div>
 
             <div>
               <div class="opacity-50">Ending date</div>
-              <input class="w-40 px-2 h-8 border" type="date" name="dateofbirth" id="dateofbirth">
+              <input
+                class="w-40 px-2 h-8 border"
+                type="date"
+                name="dateofbirth"
+                id="dateofbirth"
+              />
             </div>
           </div>
         </div>
@@ -208,8 +215,12 @@ export default {
           </tbody>
 
           <div class="mt-20">
-
-            <button class="text-white rounded-sm bg-blue-400 text-2xl border px-10 py-2" @click="loadMore()">Load More</button>
+            <button
+              class="text-white rounded-sm bg-blue-400 text-2xl border px-10 py-2"
+              @click="loadMore()"
+            >
+              Load More
+            </button>
           </div>
         </table>
       </div>

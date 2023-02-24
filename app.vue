@@ -68,42 +68,39 @@ export default {
     const accounts = computed(() => accResult.value?.accounts ?? []);
 
     const searchText = ref('');
-
     const searchAcc = ref({ name: 'All' });
+    const startDate = ref('');
+    const endDate = ref('');
 
     const filteredTransactions = computed(() => {
+      let filtered = transactions.value;
+
       if (searchAcc.value.name !== 'All') {
         const accId = searchAcc.value.id;
-        const filtered = transactions.value.filter(
-          (tr) => tr.accountId === accId
-        );
-
-        if (searchText.value.trim().length >= 1) {
-          return filtered.filter((tr) =>
-            tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
-          );
-        }
-
-        return (transactions.value = filtered);
+        filtered = filtered.filter((tr) => tr.accountId === accId);
       }
 
-      if (searchAcc.value.name === 'All') {
-        if (searchText.value.trim().length === 0) {
-          return transactions.value;
-        }
-
-        return transactions.value.filter((tr) =>
+      if (searchText.value.trim().length >= 1) {
+        filtered = filtered.filter((tr) =>
           tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
         );
       }
 
-      // if (searchText.value.trim().length === 0) {
-      //   return transactions.value;
-      // }
+      if (startDate.value) {
+        filtered = filtered.filter((tr) => {
+          const trDate = new Date(tr.date);
+          return trDate >= new Date(startDate.value);
+        });
+      }
 
-      return transactions.value.filter((tr) =>
-        tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
-      );
+      if (endDate.value) {
+        filtered = filtered.filter((tr) => {
+          const trDate = new Date(tr.date);
+          return trDate <= new Date(endDate.value);
+        });
+      }
+
+      return filtered;
     });
 
     const searchRef = () => {
@@ -119,6 +116,8 @@ export default {
       searchAcc,
       searchRef,
       loadMore,
+      startDate,
+      endDate,
     };
   },
 };
@@ -152,6 +151,7 @@ export default {
             <div>
               <div class="opacity-50">Starting date</div>
               <input
+                v-model="startDate"
                 class="w-40 px-2 h-8 border"
                 type="date"
                 name="dateofbirth"
@@ -162,6 +162,7 @@ export default {
             <div>
               <div class="opacity-50">Ending date</div>
               <input
+                v-model="endDate"
                 class="w-40 px-2 h-8 border"
                 type="date"
                 name="dateofbirth"
@@ -219,7 +220,7 @@ export default {
               class="text-white rounded-sm bg-blue-400 text-2xl border px-10 py-2"
               @click="loadMore()"
             >
-              Load More
+              {{ loading ? 'Loading...' : 'Load more' }}
             </button>
           </div>
         </table>

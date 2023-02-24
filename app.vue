@@ -132,32 +132,35 @@ export default {
       <div class="p-12">
         <div class="font-semibold text-lg">Transactions</div>
         <!-- TODO: filters -->
-        <div class="flex flex-wrap gap-4 mt-6">
-          <div>
-            <div class="opacity-50 w-fit">Reference</div>
+        <div class="flex gap-4 justify-between mt-6">
+          <div class="w-1/3">
+            <div class="opacity-50">Reference</div>
             <input
               v-model="searchText"
-              class="w-72 h-8 border"
+              class="px-2 w-full h-8 border"
               @input="searchRef"
             />
           </div>
-          <div>
-            <div class="opacity-50">Account</div>
+          <div class="flex space-x-5 items-center">
+            <div>
+              <div class="opacity-50 w-2/3">Account</div>
+              <select v-model="searchAcc" class="px-2 w-40 h-8 border">
+                <option :value="{ name: 'All' }">All</option>
+                <option :value="acc" v-for="acc in accounts">
+                  {{ acc.name }}
+                </option>
+              </select>
+            </div>
+            
+            <div>
+              <div class="opacity-50">Starting date</div>
+              <input class="w-40 px-2 h-8 border" type="date" name="dateofbirth" id="dateofbirth">
+            </div>
 
-            <select v-model="searchAcc" class="w-40 h-8 border">
-              <option :value="{ name: 'All' }">All</option>
-              <option :value="acc" v-for="acc in accounts">
-                {{ acc.name }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <div class="opacity-50">Starting month</div>
-            <input class="w-40 h-8 border" />
-          </div>
-          <div>
-            <div class="opacity-50">Ending month</div>
-            <input class="w-40 h-8 border" />
+            <div>
+              <div class="opacity-50">Ending date</div>
+              <input class="w-40 px-2 h-8 border" type="date" name="dateofbirth" id="dateofbirth">
+            </div>
           </div>
         </div>
 
@@ -198,8 +201,8 @@ export default {
               </td>
               <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
               <td class="text-end">
-                <span class="opacity-50">{{ value.currency }}</span>
                 {{ value.amount }}
+                <span class="opacity-50">{{ value.currency }}</span>
               </td>
             </tr>
           </tbody>

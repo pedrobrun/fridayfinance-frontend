@@ -1,32 +1,16 @@
 <script setup>
 import { ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
-import gql from 'graphql-tag';
 import { provideApolloClient } from '@vue/apollo-composable';
 import { apolloClient } from '../gql/apolloClient';
-
-provideApolloClient(apolloClient);
+import { GET_TRANSACTIONS } from '../gql/queries/transactions/getTransactions'
+import { GET_ACCOUNTS } from '../gql/queries/accounts/getAccounts'
 
 const skip = ref(0);
 const take = ref(30);
 
 const { result, loading, error, fetchMore } = useQuery(
-  gql`
-    query getTransactions($skip: Int!, $take: Int!) {
-      transactions(pagination: { skip: $skip, take: $take }) {
-        id
-        accountId
-        reference
-        amount
-        currency
-        date
-        category {
-          name
-          color
-        }
-      }
-    }
-  `,
+  GET_TRANSACTIONS,
   { skip, take },
   { fetchPolicy: 'cache-and-network' }
 );
@@ -52,14 +36,7 @@ function loadMore() {
 }
 
 const { result: accResult } = useQuery(
-  gql`
-    query getAccounts {
-      accounts {
-        id
-        name
-      }
-    }
-  `
+  GET_ACCOUNTS
 );
 
 const transactions = computed(() => result.value?.transactions ?? []);
@@ -101,8 +78,8 @@ const filteredTransactions = computed(() => {
   return filtered;
 });
 
-async function navigate(transactionId) {
-  await navigateTo({ path: `transaction/${transactionId}` })
+async function navigateToTransactionDetails(transactionId) {
+  await navigateTo({ path: `/transaction/${transactionId}`})
 }
 
 </script>
@@ -159,7 +136,14 @@ async function navigate(transactionId) {
     <div v-else-if="error">Error: {{ error.message }}</div>
 
     <div v-if="filteredTransactions.length === 0">
-      <div class="mt-12 text-xl">No transactions found...</div>
+      <div class="flex items-baseline mt-12 text-lg">No transactions found...<span class="text-4xl ml-1">🤷</span></div>
+
+      <button
+          class="text-white mt-4 rounded-sm bg-blue-400 text-2xl border px-10 py-2"
+          @click="loadMore()"
+        >
+          {{ 'Load more' }}
+        </button>
     </div>
 
     <!-- TODO: Each transaction opens a details page -->
@@ -176,10 +160,11 @@ async function navigate(transactionId) {
         <tr
           v-for="value in filteredTransactions"
           :key="value.id"
-          class="border-t pb-12 h-12 cursor-pointer hover:bg-orange-50"
-          @click="navigate(value.id)"
+          @click="navigateToTransactionDetails(value.id)"
+          class="transition duration-50 ease-in-out hover:scale-[1.05] border-t pb-12 h-12 cursor-pointer"
+          :class="value.amount > 0 ? 'hover:bg-green-100': 'hover:bg-red-100'"
         >
-          <td :style="{ opacity: value.reference ? '' : '0.2' }">
+          <td :class="value.reference ? '' : 'opacity-50'">
             {{ value.reference ?? 'No reference provided' }}
           </td>
           <td>
@@ -200,7 +185,7 @@ async function navigate(transactionId) {
 
       <div class="mt-20">
         <button
-          class="text-white rounded-sm bg-blue-400 text-2xl border px-10 py-2"
+          class="text-white rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110"
           @click="loadMore()"
         >
           {{ loading ? 'Loading...' : 'Load more' }}

@@ -100,6 +100,11 @@ const filteredTransactions = computed(() => {
 
   return filtered;
 });
+
+async function navigate(transactionId) {
+  await navigateTo({ path: `transaction/${transactionId}` })
+}
+
 </script>
 
 <template>
@@ -172,7 +177,7 @@ const filteredTransactions = computed(() => {
           v-for="value in filteredTransactions"
           :key="value.id"
           class="border-t pb-12 h-12 cursor-pointer hover:bg-orange-50"
-          onclick=""
+          @click="navigate(value.id)"
         >
           <td :style="{ opacity: value.reference ? '' : '0.2' }">
             {{ value.reference ?? 'No reference provided' }}

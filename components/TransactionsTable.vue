@@ -1,18 +1,20 @@
 <script setup>
 import { ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
-import { provideApolloClient } from '@vue/apollo-composable';
-import { apolloClient } from '../gql/apolloClient';
-import { GET_TRANSACTIONS } from '../gql/queries/transactions/getTransactions';
-import { GET_ACCOUNTS } from '../gql/queries/accounts/getAccounts';
+import { GET_TRANSACTIONS } from '../gql/transactions/getTransactions';
+import { GET_ACCOUNTS } from '../gql/accounts/getAccounts';
 
 const skip = ref(0);
 const take = ref(30);
 
-const { result, loading, error, fetchMore } = useQuery(GET_TRANSACTIONS, {
-  skip,
-  take,
-});
+const { result, loading, error, fetchMore } = useQuery(
+  GET_TRANSACTIONS,
+  {
+    skip,
+    take,
+  },
+  { fetchPolicy: 'cache-and-network' }
+);
 
 function loadMore() {
   fetchMore({
@@ -83,7 +85,9 @@ async function navigateToTransactionDetails(transactionId) {
 <template>
   <div class="p-12">
     <div class="font-semibold text-lg">
-      Transactions <span v-if="loading">⏳</span> <span v-else-if="filteredTransactions.length > 0">✅</span> <span v-else>🤷</span>
+      Transactions <span v-if="loading">⏳</span>
+      <span v-else-if="filteredTransactions.length > 0">✅</span>
+      <span v-else>🤷</span>
     </div>
     <!-- TODO: filters -->
     <div class="flex gap-4 justify-between mt-6">
@@ -131,7 +135,7 @@ async function navigateToTransactionDetails(transactionId) {
 
     <div v-if="error">Error: {{ error.message }}</div>
 
-    <div v-if="filteredTransactions.length === 0">
+    <div v-if="!loading && filteredTransactions.length === 0">
       <div class="flex items-baseline mt-5 text-lg">
         No transactions found...
       </div>
@@ -140,7 +144,9 @@ async function navigateToTransactionDetails(transactionId) {
         class="text-white rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110 mt-5"
         @click="loadMore()"
       >
-        {{ loading ? 'Loading' : 'Load more' }}
+        {{
+          loading && filteredTransactions.length === 0 ? 'Loading' : 'Load more'
+        }}
       </button>
     </div>
 
@@ -190,7 +196,11 @@ async function navigateToTransactionDetails(transactionId) {
           class="text-white rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110"
           @click="loadMore()"
         >
-          {{ loading ? 'Loading...' : 'Load more' }}
+          {{
+            loading && !filteredTransactions.length > 0
+              ? 'Loading...'
+              : 'Load more'
+          }}
         </button>
       </div>
     </table>

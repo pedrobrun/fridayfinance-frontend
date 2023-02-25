@@ -19,6 +19,7 @@
     "@apollo/client": "^3.7.7",
     "@vue/apollo-composable": "^4.0.0-beta.2",
     "graphql": "^16.6.0",
-    "graphql-tag": "^2.12.6"
+    "graphql-tag": "^2.12.6",
+    "vue3-toastify": "^0.1.1"
   }
 }

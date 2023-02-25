@@ -12,6 +12,7 @@ export const GET_TRANSACTION_BY_ID = gql`
         name
       }
       category {
+        id
         name
       }
     }

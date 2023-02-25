@@ -3,17 +3,16 @@ import { ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { provideApolloClient } from '@vue/apollo-composable';
 import { apolloClient } from '../gql/apolloClient';
-import { GET_TRANSACTIONS } from '../gql/queries/transactions/getTransactions'
-import { GET_ACCOUNTS } from '../gql/queries/accounts/getAccounts'
+import { GET_TRANSACTIONS } from '../gql/queries/transactions/getTransactions';
+import { GET_ACCOUNTS } from '../gql/queries/accounts/getAccounts';
 
 const skip = ref(0);
 const take = ref(30);
 
-const { result, loading, error, fetchMore } = useQuery(
-  GET_TRANSACTIONS,
-  { skip, take },
-  { fetchPolicy: 'cache-and-network' }
-);
+const { result, loading, error, fetchMore } = useQuery(GET_TRANSACTIONS, {
+  skip,
+  take,
+});
 
 function loadMore() {
   fetchMore({
@@ -35,9 +34,7 @@ function loadMore() {
   });
 }
 
-const { result: accResult } = useQuery(
-  GET_ACCOUNTS
-);
+const { result: accResult } = useQuery(GET_ACCOUNTS);
 
 const transactions = computed(() => result.value?.transactions ?? []);
 const accounts = computed(() => accResult.value?.accounts ?? []);
@@ -79,14 +76,15 @@ const filteredTransactions = computed(() => {
 });
 
 async function navigateToTransactionDetails(transactionId) {
-  await navigateTo({ path: `/transaction/${transactionId}`})
+  await navigateTo({ path: `/transaction/${transactionId}` });
 }
-
 </script>
 
 <template>
   <div class="p-12">
-    <div class="font-semibold text-lg">Transactions</div>
+    <div class="font-semibold text-lg">
+      Transactions <span v-if="loading">⏳</span> <span v-else-if="filteredTransactions.length > 0">✅</span> <span v-else>🤷</span>
+    </div>
     <!-- TODO: filters -->
     <div class="flex gap-4 justify-between mt-6">
       <div class="w-1/3">
@@ -131,19 +129,19 @@ async function navigateToTransactionDetails(transactionId) {
       </div>
     </div>
 
-    <div v-if="loading">Loading...</div>
-
-    <div v-else-if="error">Error: {{ error.message }}</div>
+    <div v-if="error">Error: {{ error.message }}</div>
 
     <div v-if="filteredTransactions.length === 0">
-      <div class="flex items-baseline mt-12 text-lg">No transactions found...<span class="text-4xl ml-1">🤷</span></div>
+      <div class="flex items-baseline mt-5 text-lg">
+        No transactions found...
+      </div>
 
       <button
-          class="text-white mt-4 rounded-sm bg-blue-400 text-2xl border px-10 py-2"
-          @click="loadMore()"
-        >
-          {{ 'Load more' }}
-        </button>
+        class="text-white rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110 mt-5"
+        @click="loadMore()"
+      >
+        {{ loading ? 'Loading' : 'Load more' }}
+      </button>
     </div>
 
     <!-- TODO: Each transaction opens a details page -->
@@ -162,7 +160,11 @@ async function navigateToTransactionDetails(transactionId) {
           :key="value.id"
           @click="navigateToTransactionDetails(value.id)"
           class="transition duration-50 ease-in-out hover:scale-[1.05] border-t pb-12 h-12 cursor-pointer"
-          :class="value.amount > 0 ? 'hover:bg-green-100': 'hover:bg-red-100'"
+          :class="
+            value.amount > 0
+              ? 'hover:from-green-100 hover:bg-gradient-to-r'
+              : 'hover:from-red-100 hover:bg-gradient-to-r'
+          "
         >
           <td :class="value.reference ? '' : 'opacity-50'">
             {{ value.reference ?? 'No reference provided' }}

@@ -50,13 +50,15 @@ async function updateTransactionCategory(transactionId, categoryId) {
 
 <template>
   <div class="m-12">
-    <button
-      class="text-4xl transition duration-150 ease-in-out hover:scale-125 mb-5"
-      @click="router.back()"
-    >
-      🔙
-    </button>
-    <div v-if="loading">Loading</div>
+    <div class="flex space-x-4 items-center">
+      <button
+        class="text-4xl transition duration-150 ease-in-out hover:scale-125 mb-5"
+        @click="router.back()"
+      >
+        🔙
+      </button>
+      <div v-if="loading">Loading...</div>
+    </div>
     <div v-if="error">Error</div>
     <div v-if="transaction">
       <div class="font-bold">Transaction</div>

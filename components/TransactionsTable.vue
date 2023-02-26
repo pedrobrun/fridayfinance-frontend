@@ -5,47 +5,48 @@ import { GET_TRANSACTIONS } from '../gql/transactions/getTransactions';
 import { GET_ACCOUNTS } from '../gql/accounts/getAccounts';
 import { GET_CATEGORIES } from '~~/gql/categories/getCategories';
 
-const skip = ref(0);
-const take = ref(100);
-
 const { result, loading, error, fetchMore } = useQuery(
   GET_TRANSACTIONS,
-  {
-    skip,
-    take,
-  },
+  { take: 100 },
   { fetchPolicy: 'cache-and-network' }
 );
 
 function loadMore() {
   fetchMore({
     variables: {
-      skip: result.value.transactions.length,
+      after: transactions.value[transactions.value.length - 1].id,
       take: 100,
+      /**
+       * TODO: find out how to filter after paginate,
+       * instead of paginating before filtering
+       */
       // reference: searchRef,
       // accountId: searchAcc?.value?.id,
       // categoryId: searchCategory?.value?.id,
       // startDate: startDate,
-      // endDate: endDate, 
+      // endDate: endDate,
     },
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult;
-
       return {
         ...previousResult,
-        transactions: [
-          ...previousResult.transactions,
-          ...fetchMoreResult.transactions,
-        ],
+        transactions: {
+          edges: [
+            ...previousResult.transactions.edges,
+            ...fetchMoreResult.transactions.edges,
+          ],
+        },
       };
     },
   });
 }
 
 const { result: accResult } = useQuery(GET_ACCOUNTS);
-const { result: categoriesResult } = useQuery(GET_CATEGORIES, null, { fetchPolicy: 'cache-and-network' });
+const { result: categoriesResult } = useQuery(GET_CATEGORIES, null, {
+  fetchPolicy: 'cache-and-network',
+});
 
-const transactions = computed(() => result.value?.transactions ?? []);
+const transactions = computed(() => result.value?.transactions?.edges ?? []);
 const accounts = computed(() => accResult.value?.accounts ?? []);
 const categories = computed(() => categoriesResult.value?.categories ?? []);
 
@@ -103,8 +104,10 @@ async function navigateToTransactionDetails(transactionId) {
       <span v-else-if="transactions.length > 0">✅</span>
       <span v-else>🤷</span>
     </div>
-    <div class="opacity-50" v-if="transactions.length > 0">Currently {{ transactions.length }} transactions to filter on</div>
-    <div class="flex gap-4 justify-between mt-6">
+    <div class="opacity-50" v-if="transactions.length > 0">
+      Currently {{ transactions.length }} transactions to filter on
+    </div>
+    <div class="flex gap-4 bg-gray-100 justify-between mt-6">
       <div class="w-1/3">
         <div class="opacity-50">Reference</div>
         <input
@@ -113,7 +116,7 @@ async function navigateToTransactionDetails(transactionId) {
           @input="searchRef"
         />
       </div>
-      <div class="flex space-x-5 items-center">
+      <div class="flex space-x-5 py-2 items-center">
         <div>
           <div class="opacity-50 w-2/3">Category</div>
           <select v-model="searchCategory" class="px-2 w-40 h-8 border">
@@ -151,71 +154,62 @@ async function navigateToTransactionDetails(transactionId) {
         No transactions found...
       </div>
 
-      <button
-        class="text-white rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110 mt-5"
-        @click="loadMore()"
-      >
-        {{
-          loading && filteredTransactions.length === 0 ? 'Loading' : 'Load more'
-        }}
-      </button>
     </div>
 
     <!-- TODO: Each transaction opens a details page -->
-    <table v-if="filteredTransactions.length > 0" class="w-full mt-8">
-      <thead>
-        <tr>
-          <th class="text-start">Reference</th>
-          <th class="text-start">Category</th>
-          <th class="text-start">Account</th>
-          <th class="text-start">Date</th>
-          <th class="text-end">Amount</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="value in filteredTransactions"
-          :key="value.id"
-          @click="navigateToTransactionDetails(value.id)"
-          class="transition duration-50 ease-in-out hover:scale-[1.05] border-t pb-12 h-12 cursor-pointer"
-          :class="
-            value.amount > 0
-              ? 'hover:from-green-100 hover:bg-gradient-to-r'
-              : 'hover:from-red-100 hover:bg-gradient-to-r'
-          "
-        >
-          <td :class="value.reference ? '' : 'opacity-50'">
-            {{ value.reference ?? 'No reference provided' }}
-          </td>
-          <td>
-            <div
-              class="w-fit px-2 rounded-sm"
-              :style="{ backgroundColor: '#' + value.category?.color }"
-            >
-              {{ value.category?.name }}
-            </div>
-          </td>
-          <td>{{ value.account?.name }}</td>
-          <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
-          <td class="text-end">
-            {{ value.amount }}
-            <span class="opacity-50">{{ value.currency }}</span>
-          </td>
-        </tr>
-      </tbody>
+    <div class="max-h-[80vh] overflow-y-scroll overflow-x-hidden">
 
-      <div class="mt-20">
-        <button
-          class="text-white rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110"
-          @click="loadMore()"
-        >
-          {{
-            loading && !filteredTransactions.length > 0
-              ? 'Loading...'
-              : 'Load more'
-          }}
-        </button>
-      </div>
-    </table>
+      <table  v-if="filteredTransactions.length > 0" class="w-full mt-8"  >
+        <thead>
+          <tr>
+            <th class="text-start pl-4">Reference</th>
+            <th class="text-start">Category</th>
+            <th class="text-start">Account</th>
+            <th class="text-start">Date</th>
+            <th class="text-end pr-4">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="value in filteredTransactions"
+            :key="value.id"
+            @click="navigateToTransactionDetails(value.id)"
+            class="transition duration-50 ease-in-out hover:scale-[1.01] border-t pb-12 h-12 cursor-pointer"
+            :class="
+              value.amount > 0
+                ? 'hover:from-green-100 hover:bg-gradient-to-r'
+                : 'hover:from-red-100 hover:bg-gradient-to-r'
+            "
+          >
+            <td class="pl-4" :class="value.reference ? '' : 'opacity-50'">
+              {{ value.reference ?? 'No reference provided' }}
+            </td>
+            <td>
+              <div
+                class="w-fit px-2 rounded-sm"
+                :style="{ backgroundColor: '#' + value.category?.color }"
+              >
+                {{ value.category?.name }}
+              </div>
+            </td>
+            <td>{{ value.account?.name }}</td>
+            <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
+            <td class="text-end pr-4 flex flex-col">
+              <div>
+                {{ value.amount }}
+              </div>
+              <span class="opacity-50 text-xs">{{ value.currency }}</span>
+            </td>
+          </tr>
+        </tbody>
+  
+      </table>
+    </div>
+      <button
+        class="text-white mt-10 rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110"
+        @click="loadMore()"
+      >
+        {{ loading ? 'Loading...' : 'Load more' }}
+      </button>
   </div>
 </template>

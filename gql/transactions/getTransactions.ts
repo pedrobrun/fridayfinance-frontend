@@ -2,7 +2,7 @@ import gql from 'graphql-tag';
 
 export const GET_TRANSACTIONS = gql`
   query getTransactions(
-    $skip: Int!
+    $after: String
     $take: Int!
     $categoryId: String
     $accountId: String
@@ -10,7 +10,7 @@ export const GET_TRANSACTIONS = gql`
     $endDate: DateTime
   ) {
     transactions(
-      pagination: { skip: $skip, take: $take }
+      pagination: { after: $after, take: $take }
       filter: {
         categoryId: $categoryId
         accountId: $accountId
@@ -18,19 +18,21 @@ export const GET_TRANSACTIONS = gql`
         endDate: $endDate
       }
     ) {
-      id
-      account {
+      edges {
         id
-        name
-      }
-      reference
-      amount
-      currency
-      date
-      category {
-        id
-        name
-        color
+        account {
+          id
+          name
+        }
+        reference
+        amount
+        currency
+        date
+        category {
+          id
+          name
+          color
+        }
       }
     }
   }

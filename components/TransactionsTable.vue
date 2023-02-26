@@ -43,7 +43,7 @@ function loadMore() {
 }
 
 const { result: accResult } = useQuery(GET_ACCOUNTS);
-const { result: categoriesResult } = useQuery(GET_CATEGORIES);
+const { result: categoriesResult } = useQuery(GET_CATEGORIES, null, { fetchPolicy: 'cache-and-network' });
 
 const transactions = computed(() => result.value?.transactions ?? []);
 const accounts = computed(() => accResult.value?.accounts ?? []);

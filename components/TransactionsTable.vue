@@ -162,7 +162,7 @@ async function navigateToTransactionDetails(transactionId) {
 
     <!-- TODO: Each transaction opens a details page -->
     <table v-if="filteredTransactions.length > 0" class="w-full mt-8">
-      <thead v-if="!loading && !error">
+      <thead>
         <tr>
           <th class="text-start">Reference</th>
           <th class="text-start">Category</th>

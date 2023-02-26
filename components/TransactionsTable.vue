@@ -6,7 +6,7 @@ import { GET_ACCOUNTS } from '../gql/accounts/getAccounts';
 import { GET_CATEGORIES } from '~~/gql/categories/getCategories';
 
 const skip = ref(0);
-const take = ref(30);
+const take = ref(100);
 
 const { result, loading, error, fetchMore } = useQuery(
   GET_TRANSACTIONS,
@@ -21,12 +21,12 @@ function loadMore() {
   fetchMore({
     variables: {
       skip: result.value.transactions.length,
-      take: 30,
-      reference: searchRef,
-      accountId: searchAcc?.value?.id,
-      categoryId: searchCategory?.value?.id,
-      startDate: startDate,
-      endDate: endDate,
+      take: 100,
+      // reference: searchRef,
+      // accountId: searchAcc?.value?.id,
+      // categoryId: searchCategory?.value?.id,
+      // startDate: startDate,
+      // endDate: endDate, 
     },
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult;
@@ -100,9 +100,10 @@ async function navigateToTransactionDetails(transactionId) {
   <div class="p-12">
     <div class="font-semibold text-lg">
       Transactions <span v-if="loading">⏳</span>
-      <span v-else-if="filteredTransactions.length > 0">✅</span>
+      <span v-else-if="transactions.length > 0">✅</span>
       <span v-else>🤷</span>
     </div>
+    <div class="opacity-50" v-if="transactions.length > 0">Currently {{ transactions.length }} transactions to filter on</div>
     <div class="flex gap-4 justify-between mt-6">
       <div class="w-1/3">
         <div class="opacity-50">Reference</div>

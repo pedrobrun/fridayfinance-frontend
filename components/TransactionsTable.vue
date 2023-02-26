@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { useQuery } from '@vue/apollo-composable';
 import { GET_TRANSACTIONS } from '../gql/transactions/getTransactions';
 import { GET_ACCOUNTS } from '../gql/accounts/getAccounts';
+import { GET_CATEGORIES } from '~~/gql/categories/getCategories';
 
 const skip = ref(0);
 const take = ref(30);
@@ -21,6 +22,10 @@ function loadMore() {
     variables: {
       skip: result.value.transactions.length,
       take: 30,
+      accountId: searchAcc?.value?.id,
+      categoryId: searchCategory?.value?.id
+      // startDate: startDate,
+      // endDate: endDate,
     },
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult;
@@ -37,21 +42,29 @@ function loadMore() {
 }
 
 const { result: accResult } = useQuery(GET_ACCOUNTS);
+const { result: categoriesResult } = useQuery(GET_CATEGORIES)
 
 const transactions = computed(() => result.value?.transactions ?? []);
 const accounts = computed(() => accResult.value?.accounts ?? []);
+const categories = computed(() => categoriesResult.value?.categories ?? []);
 
 const searchText = ref('');
 const searchAcc = ref({ name: 'All' });
-const startDate = ref('');
-const endDate = ref('');
+const searchCategory = ref({ name: 'All' });
+const startDate = ref(null);
+const endDate = ref(null);
 
 const filteredTransactions = computed(() => {
   let filtered = transactions.value;
 
   if (searchAcc.value.name !== 'All') {
     const accId = searchAcc.value.id;
-    filtered = filtered.filter((tr) => tr.accountId === accId);
+    filtered = filtered.filter((tr) => tr.account.id === accId);
+  }
+
+  if (searchCategory.value.name !== 'All') {
+    const categoryId = searchCategory.value.id;
+    filtered = filtered.filter((tr) => tr.category.id === categoryId);
   }
 
   if (searchText.value.trim().length >= 1) {
@@ -89,7 +102,6 @@ async function navigateToTransactionDetails(transactionId) {
       <span v-else-if="filteredTransactions.length > 0">✅</span>
       <span v-else>🤷</span>
     </div>
-    <!-- TODO: filters -->
     <div class="flex gap-4 justify-between mt-6">
       <div class="w-1/3">
         <div class="opacity-50">Reference</div>
@@ -100,6 +112,15 @@ async function navigateToTransactionDetails(transactionId) {
         />
       </div>
       <div class="flex space-x-5 items-center">
+        <div>
+          <div class="opacity-50 w-2/3">Category</div>
+          <select v-model="searchCategory" class="px-2 w-40 h-8 border">
+            <option :value="{ name: 'All' }">All</option>
+            <option :value="ctg" v-for="ctg in categories">
+              {{ ctg.name }}
+            </option>
+          </select>
+        </div>
         <div>
           <div class="opacity-50 w-2/3">Account</div>
           <select v-model="searchAcc" class="px-2 w-40 h-8 border">
@@ -115,8 +136,6 @@ async function navigateToTransactionDetails(transactionId) {
             v-model="startDate"
             class="w-40 px-2 h-8 border"
             type="date"
-            name="dateofbirth"
-            id="dateofbirth"
           />
         </div>
 
@@ -126,8 +145,6 @@ async function navigateToTransactionDetails(transactionId) {
             v-model="endDate"
             class="w-40 px-2 h-8 border"
             type="date"
-            name="dateofbirth"
-            id="dateofbirth"
           />
         </div>
       </div>
@@ -151,11 +168,12 @@ async function navigateToTransactionDetails(transactionId) {
     </div>
 
     <!-- TODO: Each transaction opens a details page -->
-    <table v-else="filteredTransactions" class="w-full mt-8">
+    <table v-else="filteredTransactions.length > 0" class="w-full mt-8">
       <thead>
         <tr>
           <th class="text-start">Reference</th>
           <th class="text-start">Category</th>
+          <th class="text-start">Account</th>
           <th class="text-start">Date</th>
           <th class="text-end">Amount</th>
         </tr>
@@ -183,6 +201,7 @@ async function navigateToTransactionDetails(transactionId) {
               {{ value.category?.name }}
             </div>
           </td>
+          <td>{{ value.account?.name  }}</td>
           <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
           <td class="text-end">
             {{ value.amount }}

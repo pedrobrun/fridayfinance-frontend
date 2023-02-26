@@ -7,7 +7,7 @@ import { GET_CATEGORIES } from '~~/gql/categories/getCategories';
 
 const { result, loading, error, fetchMore } = useQuery(
   GET_TRANSACTIONS,
-  { take: 100 },
+  { take: 500 },
   { fetchPolicy: 'cache-and-network' }
 );
 
@@ -15,7 +15,7 @@ function loadMore() {
   fetchMore({
     variables: {
       after: transactions.value[transactions.value.length - 1].id,
-      take: 100,
+      take: 500,
       /**
        * TODO: find out how to filter after paginate,
        * instead of paginating before filtering
@@ -105,7 +105,7 @@ async function navigateToTransactionDetails(transactionId) {
       <span v-else>🤷</span>
     </div>
     <div class="opacity-50" v-if="transactions.length > 0">
-      Currently {{ transactions.length }} transactions to filter on
+      Currently showing {{ transactions.length }} transactions to filter on
     </div>
     <div class="flex gap-4 bg-gray-100 justify-between mt-6">
       <div class="w-1/3">
@@ -207,7 +207,7 @@ async function navigateToTransactionDetails(transactionId) {
     </div>
       <button
         class="text-white mt-10 rounded-sm bg-blue-400 text-xl border px-10 py-2 transition duration-150 ease-in-out hover:scale-110"
-        @click="loadMore()"
+        @click="loading ? null : loadMore()"
       >
         {{ loading ? 'Loading...' : 'Load more' }}
       </button>

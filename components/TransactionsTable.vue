@@ -22,10 +22,11 @@ function loadMore() {
     variables: {
       skip: result.value.transactions.length,
       take: 30,
+      reference: searchRef,
       accountId: searchAcc?.value?.id,
-      categoryId: searchCategory?.value?.id
-      // startDate: startDate,
-      // endDate: endDate,
+      categoryId: searchCategory?.value?.id,
+      startDate: startDate,
+      endDate: endDate,
     },
     updateQuery: (previousResult, { fetchMoreResult }) => {
       if (!fetchMoreResult) return previousResult;
@@ -48,7 +49,7 @@ const transactions = computed(() => result.value?.transactions ?? []);
 const accounts = computed(() => accResult.value?.accounts ?? []);
 const categories = computed(() => categoriesResult.value?.categories ?? []);
 
-const searchText = ref('');
+const searchRef = ref('');
 const searchAcc = ref({ name: 'All' });
 const searchCategory = ref({ name: 'All' });
 const startDate = ref(null);
@@ -57,19 +58,19 @@ const endDate = ref(null);
 const filteredTransactions = computed(() => {
   let filtered = transactions.value;
 
-  if (searchAcc.value.name !== 'All') {
+  if (searchAcc.value.name !== 'All' && searchAcc.value.id) {
     const accId = searchAcc.value.id;
     filtered = filtered.filter((tr) => tr.account.id === accId);
   }
 
-  if (searchCategory.value.name !== 'All') {
+  if (searchCategory.value.name !== 'All' && searchCategory.value.id) {
     const categoryId = searchCategory.value.id;
     filtered = filtered.filter((tr) => tr.category.id === categoryId);
   }
 
-  if (searchText.value.trim().length >= 1) {
+  if (searchRef.value.trim().length >= 1) {
     filtered = filtered.filter((tr) =>
-      tr.reference?.toLowerCase().includes(searchText.value.toLowerCase())
+      tr.reference?.toLowerCase().includes(searchRef.value.toLowerCase())
     );
   }
 
@@ -106,7 +107,7 @@ async function navigateToTransactionDetails(transactionId) {
       <div class="w-1/3">
         <div class="opacity-50">Reference</div>
         <input
-          v-model="searchText"
+          v-model="searchRef"
           class="px-2 w-full h-8 border"
           @input="searchRef"
         />

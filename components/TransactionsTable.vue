@@ -107,7 +107,7 @@ async function navigateToTransactionDetails(transactionId) {
     <div class="opacity-50" v-if="transactions.length > 0">
       Currently showing {{ transactions.length }} transactions to filter on
     </div>
-    <div class="flex gap-4 bg-gray-100 justify-between mt-6">
+    <div class="flex items-center gap-4 bg-gray-100 justify-between mt-6">
       <div class="w-1/3">
         <div class="opacity-50">Reference</div>
         <input

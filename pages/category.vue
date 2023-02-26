@@ -1,6 +1,6 @@
 <script setup>
 import { toast } from 'vue3-toastify';
-import { CREATE_CATEGORY } from '@/gql/categories/createCategory'
+import { CREATE_CATEGORY } from '@/gql/categories/createCategory';
 import { useMutation } from '@vue/apollo-composable';
 
 const router = useRouter();
@@ -11,18 +11,18 @@ const { mutate } = useMutation(CREATE_CATEGORY);
 
 async function submit() {
   if (!name.value) {
-    return toast.error('✏️ Missing Name')
+    return toast.error('✏️ Missing Name');
   }
   if (!color.value) {
-    return toast.error('🎨 Missing Color')
+    return toast.error('🎨 Missing Color');
   }
   if (color.value.length > 7) {
-    return toast.error('🎨 Invalid hex code')
+    return toast.error('🎨 Invalid hex code');
   }
 
-  color.value = color.value.slice(1)
+  color.value = color.value.slice(1);
 
-  await toast.promise(mutate({color: color.value, name: name.value}), {
+  await toast.promise(mutate({ color: color.value, name: name.value }), {
     pending: 'Loading...',
     success: 'Successfuly created!',
     error: 'Something went wrong...',

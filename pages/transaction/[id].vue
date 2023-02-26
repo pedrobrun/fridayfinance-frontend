@@ -100,7 +100,9 @@ async function updateTransactionCategory(transactionId, categoryId) {
             </button>
           </div>
           <NuxtLink to="/category">
-            <button class="px-1 h-6 text-sm rounded-sm bg-green-200 border-black border transition duration-150 ease-in-out hover:scale-110">
+            <button
+              class="px-1 h-6 text-sm rounded-sm bg-green-200 border-black border transition duration-150 ease-in-out hover:scale-110"
+            >
               💡 Create Category
             </button>
           </NuxtLink>

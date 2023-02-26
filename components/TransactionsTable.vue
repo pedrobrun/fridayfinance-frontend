@@ -43,7 +43,7 @@ function loadMore() {
 }
 
 const { result: accResult } = useQuery(GET_ACCOUNTS);
-const { result: categoriesResult } = useQuery(GET_CATEGORIES)
+const { result: categoriesResult } = useQuery(GET_CATEGORIES);
 
 const transactions = computed(() => result.value?.transactions ?? []);
 const accounts = computed(() => accResult.value?.accounts ?? []);
@@ -133,28 +133,20 @@ async function navigateToTransactionDetails(transactionId) {
         </div>
         <div>
           <div class="opacity-50">Starting date</div>
-          <input
-            v-model="startDate"
-            class="w-40 px-2 h-8 border"
-            type="date"
-          />
+          <input v-model="startDate" class="w-40 px-2 h-8 border" type="date" />
         </div>
 
         <div>
           <div class="opacity-50">Ending date</div>
-          <input
-            v-model="endDate"
-            class="w-40 px-2 h-8 border"
-            type="date"
-          />
+          <input v-model="endDate" class="w-40 px-2 h-8 border" type="date" />
         </div>
       </div>
     </div>
 
     <div v-if="error">Error: {{ error.message }}</div>
 
-    <div v-if="!loading && filteredTransactions.length === 0">
-      <div class="flex items-baseline mt-5 text-lg">
+    <div v-if="filteredTransactions.length === 0">
+      <div v-if="!loading" class="flex items-baseline mt-5 text-lg">
         No transactions found...
       </div>
 
@@ -169,8 +161,8 @@ async function navigateToTransactionDetails(transactionId) {
     </div>
 
     <!-- TODO: Each transaction opens a details page -->
-    <table v-else="filteredTransactions.length > 0" class="w-full mt-8">
-      <thead>
+    <table v-if="filteredTransactions.length > 0" class="w-full mt-8">
+      <thead v-if="!loading && !error">
         <tr>
           <th class="text-start">Reference</th>
           <th class="text-start">Category</th>
@@ -202,7 +194,7 @@ async function navigateToTransactionDetails(transactionId) {
               {{ value.category?.name }}
             </div>
           </td>
-          <td>{{ value.account?.name  }}</td>
+          <td>{{ value.account?.name }}</td>
           <td>{{ value.date.slice(0, 10).replaceAll('-', '/') }}</td>
           <td class="text-end">
             {{ value.amount }}

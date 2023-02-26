@@ -65,7 +65,7 @@ const filteredTransactions = computed(() => {
 
   if (searchCategory.value.name !== 'All' && searchCategory.value.id) {
     const categoryId = searchCategory.value.id;
-    filtered = filtered.filter((tr) => tr.category.id === categoryId);
+    filtered = filtered.filter((tr) => tr.category?.id === categoryId);
   }
 
   if (searchRef.value.trim().length >= 1) {

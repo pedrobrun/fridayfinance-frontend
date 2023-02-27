@@ -18,7 +18,12 @@ function loadMore() {
       take: 500,
       /**
        * TODO: find out how to filter after paginate,
-       * instead of paginating before filtering
+       * instead of paginating before filtering.
+       * 
+       * the way it is right now would be problematic using
+       * the filter on the api, because if the pagination does not find
+       * any transaction, it doesnt have a cursor for the next query,
+       * making it feel like it's reached a dead end
        */
       // reference: searchRef,
       // accountId: searchAcc?.value?.id,
